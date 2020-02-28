@@ -1,0 +1,262 @@
+main {
+  clear: both;
+  background-color: #C9E7BC;
+
+  .content {
+    padding: 0 20px;
+  }
+
+  .posts {
+    margin-bottom: 20px;
+    border-top: 1px solid #000;
+  }
+
+  .read-more a {
+    font-family: $decoration-font-family;
+    font-size: 1.1rem;
+  }
+
+  .about,
+  .post {
+    padding: 0.875rem 0;
+
+    .post__title {
+      font-family: $decoration-font-family;
+      font-size: 1.75rem;
+
+      a {
+        color: #000;
+        text-decoration: underline;
+      }
+    }
+
+    h2, h3, h4, h5, h6 {
+      font-weight: bold;
+    }
+
+    code {
+      padding: 3px 5px;
+      border-radius: 4px;
+      color: $code-colour;
+      background: $secondary-colour;
+    }
+
+    blockquote {
+      margin: 2em 0;
+      padding: 10px 20px;
+      position: relative;
+      color: rgba(#34495e, 0.8);
+      background-color: rgba(192, 91, 77, .05);
+      border-left: 3px solid rgba(192, 91, 77, .3);
+      box-shadow: 1px 1px 2px rgba(0, 0, 0, .125);
+
+      p {
+        margin: 0;
+      }
+    }
+
+    table {
+      width: 100%;
+      max-width: 100%;
+      margin: 10px 0;
+      border-spacing: 0;
+      box-shadow: 2px 2px 3px rgba(0, 0, 0, .125);
+
+      thead {
+        background: $secondary-colour;
+      }
+
+      th, td {
+        padding: 5px 15px;
+        border: 1px double darken($secondary-colour, 3%);
+      }
+
+      tr:hover {
+        background-color: $secondary-colour;
+      }
+    }
+
+    .footnote-definition {
+      padding-left: 40px;
+
+      &:first-of-type {
+        border-top: 2px dashed $main-colour;
+        margin-top: 1rem;
+        padding-top: 1rem;
+      }
+
+      sup {
+        &.footnote-definition-label {
+          font-size: 100%;
+          position: unset;
+          top: unset;
+
+          &::after {
+            content: '.';
+          }
+        }
+      }
+
+      p {
+        display: inline;
+      }
+    }
+
+    &__title {
+      margin: 0;
+      font-size: 26px;
+      font-weight: 400;
+
+      @include underline-from-center;
+    }
+
+    &__category {
+      display: inline;
+
+      a {
+        color: #0F0;
+
+        &:before {
+          content: "\B7";
+          padding-right: 2px;
+        }
+
+        &:hover {
+          color: $main-colour;
+        }
+      }
+    }
+
+    &__meta {
+      font-size: 14px;
+      color: #333;
+    }
+
+    &__summary {
+      margin-bottom: 1rem;
+    }
+  }
+
+  .post-footer {
+    margin-top: 20px;
+    border-top: 1px solid #000;
+
+    &:after {
+        clear: both;
+        height: 0;
+        width: 100%;
+        content: '';
+        display: block;
+    }
+  }
+
+  .post-tags {
+    padding: 15px 0;
+
+    a {
+      margin-right: 5px;
+      color: #0F0;
+    }
+  }
+
+  .post-nav {
+    margin: 1rem 0;
+  }
+
+  .post + .post {
+    border-top: 1px solid #000;
+  }
+
+  .pagination {
+    clear: both;
+    font-family: $decoration-font-family;
+    margin: 2rem 0;
+
+    a {
+      color: #FFF;
+    }
+  }
+}
+
+.next, .previous {
+  font-weight: 600;
+  font-size: 20px;
+  transition: transform 0.3s ease-out;
+
+  &:hover {
+    color: #AAF;
+  }
+}
+
+.next {
+  float: right;
+  &:hover {
+    transform: translateX(4px);
+  }
+}
+
+.previous {
+  float: left;
+  &:hover {
+    transform: translateX(-4px);
+  }
+}
+
+.taxonomies {
+  margin: 2em 0 3em;
+  text-align: center;
+
+  &__title {
+    display: inline-block;
+    font-size: 18px;
+    color: $main-colour;
+    border-bottom: 2px solid #000;
+  }
+
+  &__items {
+    margin: 10px 0;
+
+    a {
+      margin: 5px 10px;
+      position: relative;
+      color: #0F0;
+      word-wrap: normal;
+
+      &:hover {
+        color: #0F0;
+      }
+
+      .count {
+        position: relative;
+        top: -8px;
+        right: -2px;
+        color: $main-colour;
+        font-size: 12px;
+      }
+    }
+  }
+}
+
+.taxonomy {
+  margin: 2em 0;
+
+  &__item {
+    padding: 3px 20px;
+    border-left: 1px solid #cacaca;
+    transition: 0.2s ease-out;
+
+    &:hover {
+      border-left: 3px solid $main-colour;
+      transform: translateX(4px);
+    }
+
+    &__time {
+      margin-right: 10px;
+      color: #000;
+    }
+
+    &__title a {
+      color: #0F0;
+    }
+  }
+}
