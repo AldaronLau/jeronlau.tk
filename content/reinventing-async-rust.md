@@ -31,8 +31,8 @@ executing when called).  And second, how do we make a `Future` out of our
 `thread`?  Turns out the Rust standard library does not have an executor built
 in, so we have to pick one.  Three popular async executors are the `futures`
 crate, `async-std` and `tokio`.  `async-std` and `tokio` have other stuff for
-actually doing I/O built in that we don't need, so we'll go with `futures`.  So,
-it Cargo.toml add
+actually doing I/O built in that we don't need, so we'll go with `futures`.  In
+Cargo.toml, add:
 
 ```toml
 [dependencies]
@@ -40,9 +40,9 @@ futures = "0.3"
 ```
 
 and then do `cargo build`.  27 crates get compiled (wow, that's a lot!  Just to
-be able to use a language feature, but could be worse).  Looks like futures has
-everything we need to finish our example, though.  And, a lot more (it's kind of
-overwhelming IMO).
+be able to use a language feature, but could be worse).  Looks like `futures`
+has everything we need to finish our example, though.  And, a lot more (it's
+kind of overwhelming IMO).
 
 ```rust
 // Sleep for 1 second
@@ -64,14 +64,14 @@ fn main() {
 }
 ```
 
-Yay, we made a future and executed it!  Now I don't think this API is too
-terrible, but it would be nice if I didn't have to worry about handling the
-`Results` with unwraps.  Also, the types are buried deep in a module tree which
-made them very hard to find for me (3 levels deep!!).  I think I can do better.
+Yay, we made a future and executed it!  I'm pretty happy with how this code
+turned out.  I do have a few minor complaints about having API buried so deep
+in modules (it made it really hard to find), and having to use a few
+`unwraps()`, but I can live with it.
 
 ## Stuff Gets Gross
-It gets worse than a few minor complaints.  Note this code from the `Future`s
-documentation.
+Unfortunately, using `Future`s in Rust can "get gross".  Let me show you what I
+mean with this code from the `futures` crate documentation:
 
 ```rust
 use futures::future::FutureExt;
@@ -96,34 +96,45 @@ let res = select! {
 assert!(res == 1 || res == 2);
 ```
 
-We have to pin `fut_2` because of the nature of this API, but unfortunately
-we're using the `pin_mut!()` macro, which is problematic.  Try adding
+This code, IMO, is a little too complicated to really scale to readable code.
+The reason for this is that our `Future`s need to be "fused" (a sort of optional
+future), as well as pinned, because all `Future`s need to be pinned in order for
+`poll()` to work.  That's a lot of transformations to do, in order to use your
+`Future`, but they are necessary.
+
+Now, let's talk about pinning.  Rust has a built in way convert a `Box` into a
+pinned box, which is helpful, but there actually is no way to pin something to
+the stack.  Until the `futures` crate / `pin_utils` added the `pin_mut!()`
+macro.  The way it works is actually pretty clever, but try adding
 `#![forbid(unsafe_code)]` to the top of your file and see what happens.  Guess
 what, it doesn't compile even though you didn't write any unsafe code!  Yes, the
-macro inserts `unsafe` blocks into your code (gross).  If you're writing an
-application in Rust, and you don't need raw FFI calls in your code, it should be
-`#![forbid(unsafe_code)]`, and this makes that impossible!  When I discovered
-this, I decided to make a replacement crate for `futures`.
+macro inserts `unsafe` blocks into your code (gross).  Why do I say this is
+gross?  If you're writing an application in Rust, and you don't need raw FFI
+calls in your code, it should be `#![forbid(unsafe_code)]`, and this makes that
+impossible!  Just use a pinned box then, oh wait, what if I can't because I'm on
+an embedded device with no heap?
 
-If you thought that was gross, guess what happens when you try and mix and match
-crates that depend on `async-std` and `tokio`?  Well, it doesn't work because of
-some incompatable async runtime nonsense.  And now the async ecosystem is
-splitting (oh no!).
+I also don't believe the above `select!` macro is very easy to understand for
+someone who's never seen it before.  Unfortunately this can't be simplified, or
+can it?
 
-Now, look at the above code and tell me that the `select!` macro isn't ugly.
-No, it's just gross to look at and read.  And why do I even have to worry about
-pinning?  I just want to execute a `Future`!
+Another "gross" issue is the unforseen idea of "incompatable runtimes".  This
+means that library crates that depend on `async-std` won't work with libraries
+that depend on `tokio`, and is causing a split in the async ecosystem.
+`async-std` and `tokio` both work great for making webservers, but I think we
+should find a way to make our async libraries compatable, if that's even
+possible.  And, what if we want to make something that's not a webserver?
 
 ## Don't Give Up Hope
 I have found a solution to every problem with async in Rust (Well, at least the
 ones I mentioned).  And, I want to share it with you.  That solution is
-[https://crates.io/crates/pasts](https://crates.io/crates/pasts), a minimal and simpler alternative to the futures crate.
-This solution doesn't use any macros at all, but is instead based on traits, and
-as a bonus has zero dependencies and works in a `no-std` environment.
-Additionally, I believe there's nothing in it that prevents it from being usable
-with `tokio` or `async-std` (futures from those crates should be able to run
-within the `pasts` executor).  Here's the example above rewritten using
-`pasts 0.1.0`, released yesterday:
+[https://crates.io/crates/pasts](https://crates.io/crates/pasts), a minimal and
+simpler alternative to the futures crate.  `pasts` doesn't use any macros at
+all, but is instead based on traits, and as a bonus has zero dependencies and
+works in a `no-std` environment.  Additionally, I believe there's nothing in it
+that prevents it from being usable with `tokio` or `async-std` (futures from
+those crates should also be able to run within the `pasts` executor).  Here's
+the example above rewritten using `pasts 0.1.0`, released yesterday:
 
 ```rust
 use pasts::prelude::*;
@@ -159,11 +170,11 @@ As you can see, the code (IMO) is a lot cleaner and easier to follow.  I hope
 that this library will help Rustaceans not have to worry about building their
 own async runtime because a "general purpose runtime" is useless (according to
 some other Rust blog posts).  This library doesn't spawn any threads outside of
-the `spawn_blocking` API, so you get to choose which threads a `Future` runs on
-at compile time.  I personally think this approach is as close as you can get to
-an async library that's general purpose.  This also means you can use `RefCell`
-to share state between futures instead of a specialized `Mutex` type, as some
-async libraries provide.
+the `spawn_blocking()` API, so you get to choose which threads a `Future` runs
+on at compile time.  I personally think this approach is as close as you can get
+to an async library that's general purpose.  This also means you can use
+`RefCell` to share state between futures on the same thread instead of a
+specialized `Mutex` type, as some async libraries provide.
 
 ## That's Not All!
 Now `pasts` is great for the application side of `async`/`.await`, but what
