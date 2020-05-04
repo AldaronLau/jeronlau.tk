@@ -8,7 +8,7 @@ template = "about.html"
 
 ---
 
-## [Personal GitHub](https://github.com/RedAldaron)
+## [Personal GitHub](https://github.com/AldaronLau)
 
 ---
 
