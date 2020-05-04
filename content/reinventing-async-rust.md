@@ -172,9 +172,9 @@ own async runtime because a "general purpose runtime" is useless (according to
 some other Rust blog posts).  This library doesn't spawn any threads outside of
 the `spawn_blocking()` API, so you get to choose which threads a `Future` runs
 on at compile time.  I personally think this approach is as close as you can get
-to an async library that's general purpose.  This also means you can use
-`RefCell` to share state between futures on the same thread instead of a
-specialized `Mutex` type, as some async libraries provide.
+to a general purpose async runtime.  This also means you can use `RefCell` to
+share state between futures on the same thread instead of a specialized `Mutex`
+type, as some async libraries provide.
 
 ## That's Not All!
 Now `pasts` is great for the application side of `async`/`.await`, but what
@@ -184,13 +184,28 @@ to have a mechanism to wake your futures, and thus comes
 [smelling_salts](https://crates.io/crates/smelling_salts) 0.1.0 (also released
 yesterday)!
 
+What do I mean by waking a future?  While your computer is waiting for some
+event in the hardware to happen, it should give up CPU time to the other
+futures.  The way it does this is by going to sleep (returning `Pending` from
+`poll()`).  When the hardware is ready it needs to be told to wake up.  This is
+done with a `Waker`.  When `Waker.wake()` is called, `poll()` gets called again.
+The `pasts` executor creates the simplest `Waker` possible, with no associated
+context (as those are `unsafe` to use).  You can pass this `Waker` to
+`smelling_salts`, and it will wake your code when the file descriptor is ready.
+
+In `pasts`, the abstraction around a `Waker` is called an `Interrupt`.  The
+`ThreadInterrupt` public API implements the `Interrupt` trait and puts the
+current thread to sleep until `.wake()` is called.  This is implemented by using
+a `Condvar`.  The executor is also built into this trait as the `block_on()`
+function.
+
 Say we don't want to start a new thread every time we want a timer future,
-because we'll be doing it a lot.  Instead we'll use a native Linux API, timerfd:
+because we'll be doing it a lot.  Instead we'll create a library using a native
+Linux API, timerfd (depending on `smelling_salts`):
 
 ```rust
 use smelling_salts::{Device, Watcher};
-use std::os::unix::io::RawFd;
-use std::os::raw::{c_long, c_int, c_void};
+use std::os::{unix::io::RawFd, raw::{c_long, c_int, c_void}};
 use std::task::{Context, Poll};
 use std::pin::Pin;
 use std::future::Future;
@@ -230,31 +245,27 @@ pub struct SecondTimer {
 impl SecondTimer {
     /// Create a new timer that will expire in 1 second.
     pub fn new() -> Self {
-        // Create and set timer to repeat every second, starting in 1 second.
-        let timerfd = unsafe {
-            timerfd_create(
-                1,      /*CLOCK_MONOTONIC*/
-                0o4000, /*TFD_NONBLOCK*/
-            )
-        };
+        // Create monotonic, nonblocking timer
+        let timerfd = unsafe { timerfd_create(1, 0o4000) };
         assert_ne!(timerfd, -1);
+
+        // Set timer to repeat every second, starting in 1 second.
+        let second = TimeSpec {
+            tv_sec: 1,
+            tv_nsec: 0,
+        };
         unsafe {
             timerfd_settime(
                 timerfd,
                 0,
                 &ItimerSpec {
-                    it_interval: TimeSpec {
-                        tv_sec: 1,
-                        tv_nsec: 0,
-                    },
-                    it_value: TimeSpec {
-                        tv_sec: 1,
-                        tv_nsec: 0,
-                    },
+                    it_interval: second,
+                    it_value: second,
                 },
                 std::ptr::null_mut(),
             );
         }
+
         // Create timer device, watching for input events.
         let device = Device::new(timerfd, Watcher::new().input());
         
