@@ -122,7 +122,7 @@ This solution doesn't use any macros at all, but is instead based on traits, and
 as a bonus has zero dependencies and works in a `no-std` environment.
 Additionally, I believe there's nothing in it that prevents it from being usable
 with `tokio` or `async-std` (futures from those crates should be able to run
-within the pasts executor).  Here's the example above rewritten using
+within the `pasts` executor).  Here's the example above rewritten using
 `pasts 0.1.0`, released yesterday:
 
 ```rust
@@ -166,10 +166,10 @@ to share state between futures instead of a specialized `Mutex` type, as some
 async libraries provide.
 
 ## That's Not All!
-Now pasts is great for the application side of `async`/`.await`, but what about
-the library side?  If you're making an async library, you're probably providing
-your own `Future`s, which is trickier to do than it sounds.  You need to have a
-mechanism to wake your futures, and thus comes
+Now `pasts` is great for the application side of `async`/`.await`, but what
+about the library side?  If you're making an async library, you're probably
+providing your own `Future`s, which is trickier to do than it sounds.  You need
+to have a mechanism to wake your futures, and thus comes
 [smelling_salts](https://crates.io/crates/smelling_salts) 0.1.0 (also released
 yesterday)!
 
@@ -283,11 +283,12 @@ impl Drop for SecondTimer {
 }
 ```
 
-Libraries should not depend on pasts, because they don't need to.  This `Future`
-will run on any executor (async-std, tokio, pasts, others), and it should be the
-application author's decision which one to use (for maximum compatability).
+Libraries should not depend on `pasts`, because they don't need to.  This
+`Future` will run on any executor (`async-std`, `tokio`, `pasts`, others), and
+it should be the application author's decision which one to use (for maximum
+compatability).
 
-Now, actually using the future in your application with pasts:
+Now, actually using the future in your application with `pasts`:
 
 ```rust
 use pasts::prelude::*;
