@@ -118,11 +118,11 @@ I also don't believe the above `select!` macro is very easy to understand for
 someone who's never seen it before.  Unfortunately this can't be simplified, or
 can it?
 
-Another "gross" issue is the unforseen idea of "incompatable runtimes".  This
+Another "gross" issue is the unforseen idea of "incompatible runtimes".  This
 means that library crates that depend on `async-std` won't work with libraries
 that depend on `tokio`, and is causing a split in the async ecosystem.
 `async-std` and `tokio` both work great for making webservers, but I think we
-should find a way to make our async libraries compatable, if that's even
+should find a way to make our async libraries compatible, if that's even
 possible.  And, what if we want to make something that's not a webserver?
 
 ## Don't Give Up Hope
@@ -297,7 +297,7 @@ impl Drop for SecondTimer {
 Libraries should not depend on `pasts`, because they don't need to.  This
 `Future` will run on any executor (`async-std`, `tokio`, `pasts`, others), and
 it should be the application author's decision which one to use (for maximum
-compatability).
+compatibility).
 
 Now, actually using the future in your application with `pasts`:
 
