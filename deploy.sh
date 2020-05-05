@@ -1,3 +1,3 @@
 #!/usr/bin/sh
 
-zola build && cp -r public/* ../aldaronlau.github.io/
+zola build && cp -r public/* ../aldaronlau.com/public/

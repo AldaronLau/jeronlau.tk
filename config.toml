@@ -1,8 +1,8 @@
 # The URL the site will be built for
-base_url = "https://jeronlau.tk"
+base_url = "https://aldaronlau.com"
 
 title = "Jeron Aldaron Lau"
-description = "RedAldaron"
+description = "AldaronLau"
 default_language = "en"
 
 # Whether to automatically compile all Sass files in the sass directory
