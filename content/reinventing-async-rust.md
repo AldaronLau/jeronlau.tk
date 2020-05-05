@@ -103,8 +103,8 @@ future), as well as pinned, because all `Future`s need to be pinned in order for
 `Future`, but they are necessary.
 
 Now, let's talk about pinning.  Rust has a built in way convert a `Box` into a
-pinned box, which is helpful, but there actually is no way to pin something to
-the stack.  Until the `futures` crate / `pin_utils` added the `pin_mut!()`
+pinned box, which is helpful, but there was actually no way to pin something to
+the stack until the `futures` crate / `pin_utils` crate added the `pin_mut!()`
 macro.  The way it works is actually pretty clever, but try adding
 `#![forbid(unsafe_code)]` to the top of your file and see what happens.  Guess
 what, it doesn't compile even though you didn't write any unsafe code!  Yes, the
@@ -115,7 +115,7 @@ impossible!  Just use a pinned box then, oh wait, what if I can't because I'm on
 an embedded device with no heap?
 
 I also don't believe the above `select!` macro is very easy to understand for
-someone who's never seen it before.  Unfortunately this can't be simplified, or
+someone who's never seen it before.  Unfortunately, this can't be simplified, or
 can it?
 
 Another "gross" issue is the unforseen idea of "incompatible runtimes".  This
@@ -168,13 +168,14 @@ assert!(res == 1 || res == 2);
 
 As you can see, the code (IMO) is a lot cleaner and easier to follow.  I hope
 that this library will help Rustaceans not have to worry about building their
-own async runtime because a "general purpose runtime" is useless (according to
-some other Rust blog posts).  This library doesn't spawn any threads outside of
-the `spawn_blocking()` API, so you get to choose which threads a `Future` runs
-on at compile time.  I personally think this approach is as close as you can get
-to a general purpose async runtime.  This also means you can use `RefCell` to
-share state between futures on the same thread instead of a specialized `Mutex`
-type, as some async libraries provide.
+own async runtime for their non-webserver projects (because `async-std`'s and
+`tokio`'s runtimes work best for webservers, due to the tradeoffs that they
+chose make).  This library doesn't spawn any threads outside of the
+`spawn_blocking()` API, so you get to choose which threads a `Future` runs on at
+compile time.  I personally think this approach is as close as you can get to a
+general purpose async runtime.  This also means you can use `RefCell` to share
+state between futures on the same thread instead of a specialized `Mutex` type,
+as some async libraries provide.
 
 ## That's Not All!
 Now `pasts` is great for the application side of `async`/`.await`, but what
@@ -200,8 +201,8 @@ a `Condvar`.  The executor is also built into this trait as the `block_on()`
 function.
 
 Say we don't want to start a new thread every time we want a timer future,
-because we'll be doing it a lot.  Instead we'll create a library using a native
-Linux API, timerfd (depending on `smelling_salts`):
+because we'll be doing it a lot.  Instead we'll create a library depending on
+`smelling_salts`, interfacing with a native Linux API, timerfd:
 
 ```rust
 use smelling_salts::{Device, Watcher};
