@@ -109,10 +109,10 @@ macro.  The way it works is actually pretty clever, but try adding
 `#![forbid(unsafe_code)]` to the top of your file and see what happens.  Guess
 what, it doesn't compile even though you didn't write any unsafe code!  Yes, the
 macro inserts `unsafe` blocks into your code (gross).  Why do I say this is
-gross?  If you're writing an application in Rust, and you don't need raw FFI
-calls in your code, it should be `#![forbid(unsafe_code)]`, and this makes that
-impossible!  Just use a pinned box then, oh wait, what if I can't because I'm on
-an embedded device with no heap?
+gross?  If you're writing an application in Rust, maybe you want to start off
+with `#![forbid(unsafe_code)]` until you can't get around needing `unsafe`.
+Using this macro makes that impossible!  "Just use a pinned box then!".  Oh
+wait, what if I can't because I'm on an embedded device with no heap?
 
 I also don't believe the above `select!` macro is very easy to understand for
 someone who's never seen it before.  Unfortunately, this can't be simplified, or

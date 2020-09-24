@@ -1,3 +1,5 @@
 #!/usr/bin/sh
 
-zola build && cp -r public/* ../aldaronlau.com/public/
+rm -rf ../aldaronlau.com/public/*
+zola build
+cp -r public/* ../aldaronlau.com/public/
