@@ -2,7 +2,7 @@
 base_url = "https://aldaronlau.com"
 
 title = "Jeron Aldaron Lau"
-description = "AldaronLau"
+description = "Jeron Aldaron Lau"
 default_language = "en"
 
 # Whether to automatically compile all Sass files in the sass directory
@@ -26,10 +26,10 @@ taxonomies = [
 [extra]
 # Put all your custom variables here
 even_menu = [
-    {url = "$BASE_URL", name = "Blog"},
+    {url = "$BASE_URL/", name = "About"},
+    {url = "$BASE_URL/blog", name = "Blog"},
     {url = "$BASE_URL/games", name = "Games"},
     {url = "$BASE_URL/music", name = "Music"},
-    {url = "$BASE_URL/films", name = "Films"},
     {url = "$BASE_URL/code", name = "Code"},
 ]
 even_title = "/res/redaldaron.jpg"
